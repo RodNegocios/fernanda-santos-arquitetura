@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import Architecture from "./components/Architecture";
-import BounceCards from "./components/BounceCards";
-import TextLoop from "./components/TextLoop";
-import TechText from "./components/TechText";
+import Architecture from "./components/visuals/Architecture";
+import BounceCards from "./components/motion/BounceCards";
+import TextLoop from "./components/motion/TextLoop";
+import TechText from "./components/motion/TechText";
 
 const WA =
   "https://wa.me/5592992192321?text=Ol%C3%A1%2C%20Fernanda!%20Gostaria%20de%20conversar%20sobre%20um%20projeto.";

@@ -1,7 +1,4 @@
 node_modules
-dist
-release
-materials
 public/images
 package-lock.json
 test-results

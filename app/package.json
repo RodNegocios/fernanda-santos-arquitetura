@@ -8,9 +8,11 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/package.mjs",
+    "build": "vite build && node scripts/package-hostinger.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "playwright test"
+    "test": "node --test tests/package.test.mjs && playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.0",
