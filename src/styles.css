@@ -1822,3 +1822,6 @@ dialog::backdrop {
     top: 140px;
   }
 }
+img {
+  height: auto;
+}
