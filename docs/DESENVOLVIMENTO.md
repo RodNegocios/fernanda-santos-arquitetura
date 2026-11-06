@@ -42,6 +42,7 @@ app/
 │   ├── 404.html / favicon.svg / robots.txt
 │   └── images/
 ├── src/
+│   ├── assets/portrait-mask.svg # Contorno integrado ao CSS no build
 │   ├── main.jsx
 │   ├── App.jsx                # Seções, contatos e interações
 │   ├── styles/global.css

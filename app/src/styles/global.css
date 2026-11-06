@@ -299,7 +299,7 @@ em {
 .hero-portrait {
   width: 100%;
   height: auto;
-  mask-image: url("/images/portrait-mask.svg");
+  mask-image: url("../assets/portrait-mask.svg");
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
 }
