@@ -169,79 +169,120 @@ export default function App() {
     const element = hero.current;
     const targets = [portrait.current, name.current, plans.current];
     if (!motion) return;
+    let ambient;
     const context = gsap.context(() => {
       gsap.fromTo(
         ".hero-arrive",
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 1.4, stagger: 0.15, ease: "power3.out" },
       );
-      gsap.to(".hero-orbit", {
-        rotate: 8,
-        scale: 1.03,
-        duration: 10,
+      ambient = gsap.to(".hero-orbit", {
+        rotate: 4,
+        scale: 1.015,
+        duration: 16,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
       });
     }, element);
-    const px = gsap.quickTo(portrait.current, "x", {
-      duration: 1.5,
-      ease: "power3.out",
-    });
-    const py = gsap.quickTo(portrait.current, "y", {
-      duration: 1.5,
-      ease: "power3.out",
-    });
-    const nx = gsap.quickTo(name.current, "x", {
-      duration: 1.7,
-      ease: "power3.out",
-    });
-    const sx = gsap.quickTo(plans.current, "x", {
-      duration: 2,
-      ease: "power3.out",
-    });
-    const move = (e) => {
-      if (e.pointerType === "touch") return;
-      const r = element.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      px(x * 12);
-      py(y * 8);
-      nx(x * -13);
-      sx(x * -25);
+    gsap.set(targets, { force3D: true });
+    const setPortraitX = gsap.quickSetter(targets[0], "x", "px");
+    const setPortraitY = gsap.quickSetter(targets[0], "y", "px");
+    const setNameX = gsap.quickSetter(targets[1], "x", "px");
+    const setPlansX = gsap.quickSetter(targets[2], "x", "px");
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const current = { x: 0, y: 0, scroll: 0 };
+    const destination = { x: 0, y: 0, scroll: 0 };
+    let frame = 0;
+    let lastTime = 0;
+    let lastPointer = null;
+    let visible = true;
+
+    // One damped update combines mouse and scroll. Frame-rate-independent
+    // interpolation avoids abrupt scroll jumps and overlapping input tweens.
+    const render = (now) => {
+      frame = 0;
+      const elapsed = Math.min(now - lastTime, 64);
+      lastTime = now;
+      const blend = 1 - Math.exp(-elapsed / 700);
+      let moving = false;
+      for (const axis of ["x", "y", "scroll"]) {
+        const remaining = destination[axis] - current[axis];
+        if (Math.abs(remaining) > 0.001) {
+          current[axis] += remaining * blend;
+          moving = true;
+        } else current[axis] = destination[axis];
+      }
+      setPortraitX(current.x * 4);
+      setPortraitY(current.y * 2 + current.scroll);
+      setNameX(current.x * -6);
+      setPlansX(current.x * -10);
+      if (moving && visible) frame = requestAnimationFrame(render);
+    };
+    const wake = () => {
+      if (frame || !visible) return;
+      lastTime = performance.now();
+      frame = requestAnimationFrame(render);
+    };
+    const move = (event) => {
+      if (event.pointerType !== "mouse" || !finePointer.matches) return;
+      if (
+        lastPointer &&
+        Math.hypot(
+          event.clientX - lastPointer.x,
+          event.clientY - lastPointer.y,
+        ) < 6
+      )
+        return;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      const bounds = element.getBoundingClientRect();
+      destination.x = gsap.utils.clamp(
+        -0.5,
+        0.5,
+        (event.clientX - bounds.left) / bounds.width - 0.5,
+      );
+      destination.y = gsap.utils.clamp(
+        -0.5,
+        0.5,
+        (event.clientY - bounds.top) / bounds.height - 0.5,
+      );
+      wake();
     };
     const leave = () => {
-      px(0);
-      py(0);
-      nx(0);
-      sx(0);
+      lastPointer = null;
+      destination.x = 0;
+      destination.y = 0;
+      wake();
     };
-    let frame;
     const scroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        const y = Math.min(window.scrollY, 900);
-        element.style.setProperty("--scroll", `${y * 0.1}px`);
-        frame = null;
-      });
+      destination.scroll =
+        gsap.utils.clamp(0, 700, window.scrollY) *
+        (finePointer.matches ? 0.02 : 0.01);
+      wake();
     };
     const observer = new IntersectionObserver(([entry]) => {
-      element.classList.toggle("offscreen", !entry.isIntersecting);
+      visible = entry.isIntersecting;
+      element.classList.toggle("offscreen", !visible);
+      ambient.paused(!visible);
+      if (visible) wake();
+      else {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
     });
     observer.observe(element);
-    element.addEventListener("pointermove", move);
+    element.addEventListener("pointermove", move, { passive: true });
     element.addEventListener("pointerleave", leave);
     window.addEventListener("scroll", scroll, { passive: true });
+    scroll();
     return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
       context.revert();
-      [px, py, nx, sx].forEach((x) => x.tween.kill());
       gsap.set(targets, { clearProps: "transform" });
-      element.style.removeProperty("--scroll");
       element.removeEventListener("pointermove", move);
       element.removeEventListener("pointerleave", leave);
       window.removeEventListener("scroll", scroll);
-      cancelAnimationFrame(frame);
-      observer.disconnect();
     };
   }, [motion]);
   useEffect(() => {
@@ -694,7 +735,9 @@ export default function App() {
               spread={95}
               rotation={9}
               arc={20}
-              pushDistance={80}
+              pushDistance={32}
+              hoverScale={1.015}
+              bounciness={0}
               borderWidth={8}
               borderColor="#faf9f3"
               radius={2}

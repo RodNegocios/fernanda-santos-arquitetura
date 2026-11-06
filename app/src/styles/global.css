@@ -284,6 +284,7 @@ em {
   border-radius: 50%;
 }
 .portrait-parallax {
+  will-change: transform;
   position: absolute;
   left: calc(50% - 425px);
   width: 850px;
@@ -292,8 +293,8 @@ em {
   pointer-events: none;
 }
 .portrait-float {
-  transform: translateY(var(--scroll, 0px));
-  animation: portrait-breathe 9s ease-in-out infinite;
+  animation: portrait-breathe 16s ease-in-out infinite;
+  will-change: transform;
 }
 .hero-portrait {
   width: 100%;
@@ -1170,10 +1171,10 @@ dialog::backdrop {
 @keyframes portrait-breathe {
   0%,
   100% {
-    translate: 0 0;
+    transform: translate3d(0, 0, 0);
   }
   50% {
-    translate: 0 -7px;
+    transform: translate3d(0, -2px, 0);
   }
 }
 @media (min-width: 1600px) {

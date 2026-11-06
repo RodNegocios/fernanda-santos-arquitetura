@@ -130,8 +130,8 @@ export default function BounceCards({
       const popStiffness = 170;
       const popDamping =
         2 * (1 - 0.85 * s.bounciness) * Math.sqrt(popStiffness);
-      const moveStiffness = 210;
-      const moveDamping = 2 * (reduce ? 1 : 0.72) * Math.sqrt(moveStiffness);
+      const moveStiffness = 100;
+      const moveDamping = 2 * Math.sqrt(moveStiffness);
       const substeps = Math.ceil(dt / (1 / 240));
       const h = dt / substeps;
       let moving = 0;
@@ -231,8 +231,10 @@ export default function BounceCards({
     const pick = (event) => {
       const s = settingsRef.current;
       const rect = root.getBoundingClientRect();
-      const px = event.clientX - rect.left - rect.width / 2;
-      const py = event.clientY - rect.top - rect.height / 2;
+      const scaleX = rect.width / root.offsetWidth || 1;
+      const scaleY = rect.height / root.offsetHeight || 1;
+      const px = (event.clientX - rect.left - rect.width / 2) / scaleX;
+      const py = (event.clientY - rect.top - rect.height / 2) / scaleY;
       let best = -1;
       let distance = Infinity;
       s.slots.forEach((slot, i) => {
@@ -248,7 +250,7 @@ export default function BounceCards({
       if (Math.abs(py - slot.y) > half + 12 || distance > half + 12) return -1;
       if (state.hovered >= 0 && state.hovered !== best) {
         const current = s.slots[state.hovered];
-        if (current && Math.abs(px - current.x) - distance < 6)
+        if (current && Math.abs(px - current.x) - distance < 18)
           return state.hovered;
       }
       return best;
@@ -271,7 +273,7 @@ export default function BounceCards({
       const index = pick(event);
       if (index < 0) return;
       const card = bodies[index];
-      if (card && !reduce) card.vs -= 2.2;
+      if (card && !reduce) card.vs -= 0.3;
       wake();
       clickRef.current?.(index);
     };
@@ -287,7 +289,7 @@ export default function BounceCards({
       const index = cardRefs.current.indexOf(event.target);
       if (index < 0 || !settingsRef.current.clickable) return;
       event.preventDefault();
-      if (bodies[index] && !reduce) bodies[index].vs -= 2.2;
+      if (bodies[index] && !reduce) bodies[index].vs -= 0.3;
       wake();
       clickRef.current?.(index);
     };
